@@ -2,56 +2,115 @@
 
 import { useEffect, useState } from 'react'
 import { getPosts } from '@/server/actions/getPosts'
+import type { Post } from '@/payload-types'
 
 export default function PostsList({ refreshKey }: { refreshKey: number }) {
-  const [posts, setPosts] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
-
-  async function loadPosts() {
-    setLoading(true)
-    const data = await getPosts()
-    setPosts(data)
-    setLoading(false)
-  }
+  const [posts, setPosts] = useState<Post[]>([])
 
   useEffect(() => {
-    loadPosts()
+    getPosts().then(setPosts)
   }, [refreshKey])
 
-  if (loading) return <p className="text-gray-500">Загрузка постов…</p>
-  if (!posts.length) return <p className="text-gray-500">Постов пока нет</p>
+  if (!posts.length) {
+    return (
+      <div style={empty}>
+        <div style={emptyTitle}>Постов пока нет</div>
+        <div style={emptySubtitle}>Создайте первый пост</div>
+      </div>
+    )
+  }
 
   return (
-    <div className="mt-8 space-y-4">
-      <h2 className="text-xl font-semibold">Посты</h2>
+    <div style={{ marginTop: 40 }}>
+      <h2 style={{ marginBottom: 20 }}>Посты</h2>
 
       {posts.map(post => (
-        <div
-          key={post.id}
-          className="rounded-xl border p-4 shadow-sm bg-white"
-        >
-          <div className="text-lg font-medium">{post.title}</div>
+        <div key={post.id} style={card}>
+          {/* TITLE */}
+          <div style={title}>{post.title}</div>
 
-          <div className="text-sm text-gray-500 mb-2">
-            Автор: {post.owner?.email?.split('@')[0]}
+          {/* AUTHOR */}
+          <div style={meta}>
+            Автор:{' '}
+            {post.owner &&
+            typeof post.owner === 'object' &&
+            'email' in post.owner
+              ? post.owner.email?.split('@')[0]
+              : '—'}
           </div>
 
-          {post.categories?.length > 0 && (
-            <div className="mb-2 flex gap-2 flex-wrap">
-              {post.categories.map((cat: any) => (
-                <span
-                  key={cat.id}
-                  className="rounded-full bg-gray-100 px-3 py-1 text-xs"
-                >
-                  {cat.title}
-                </span>
-              ))}
+          {/* CATEGORIES */}
+          {post.categories?.length ? (
+            <div style={categories}>
+              Категории:{' '}
+              {post.categories
+                .filter(c => typeof c === 'object')
+                .map(c => c.title)
+                .join(' | ')}
             </div>
-          )}
+          ) : null}
 
-          <p className="text-gray-700">{post.content}</p>
+          {/* CONTENT */}
+          {post.content && (
+            <div style={content}>{post.content}</div>
+          )}
         </div>
       ))}
     </div>
   )
+}
+
+/* ---------------- STYLES ---------------- */
+
+const card: React.CSSProperties = {
+  background: '#0b0b0b',
+  borderRadius: 16,
+  padding: '22px 26px',
+  marginBottom: 28,
+  border: '1px solid rgba(255,255,255,0.06)',
+}
+
+const title: React.CSSProperties = {
+  fontSize: 22,
+  fontWeight: 600,
+  marginBottom: 6,
+  color: '#ffffff',
+}
+
+const meta: React.CSSProperties = {
+  fontSize: 13,
+  color: '#8b8b8b',
+  marginBottom: 10,
+}
+
+const categories: React.CSSProperties = {
+  fontSize: 13,
+  color: '#4da3ff',
+  marginBottom: 14,
+}
+
+const content: React.CSSProperties = {
+  fontSize: 15,
+  lineHeight: 1.65,
+  color: '#e6e6e6',
+  whiteSpace: 'pre-wrap',
+}
+
+const empty: React.CSSProperties = {
+  marginTop: 60,
+  padding: 40,
+  borderRadius: 16,
+  background: '#f6f6f6',
+  textAlign: 'center',
+}
+
+const emptyTitle: React.CSSProperties = {
+  fontSize: 18,
+  fontWeight: 600,
+  marginBottom: 6,
+}
+
+const emptySubtitle: React.CSSProperties = {
+  fontSize: 14,
+  color: '#777',
 }
