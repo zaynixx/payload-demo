@@ -61,7 +61,13 @@ export default function HomeClient() {
 
   return (
     <>
-      <h1>Здравствуйте {user.username ?? user.email}</h1>
+        <h1>
+        Здравствуйте{' '}
+        {user.username
+            ? user.username
+            : user.email?.split('@')[0]}
+        </h1>
+
 
       <h2>Создать пост</h2>
       <input value={title} onChange={e => setTitle(e.target.value)} />
