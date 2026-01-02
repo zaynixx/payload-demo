@@ -7,7 +7,6 @@ import config from '@/payload.config'
 export async function authorizeUser(login: string, password: string) {
   const payload = await getPayload({ config })
 
-  // 👇 делаем email из login
   const email = login.includes('@')
     ? login
     : `${login}@test.com`
@@ -15,13 +14,12 @@ export async function authorizeUser(login: string, password: string) {
   let result
 
   try {
-    // 1️⃣ ПЫТАЕМСЯ ЛОГИНИТЬСЯ
     result = await payload.login({
       collection: 'users',
       data: { email, password },
     })
   } catch (err) {
-    // 2️⃣ ЕСЛИ НЕ ПОЛУЧИЛОСЬ — СОЗДАЁМ ЮЗЕРА
+
     await payload.create({
       collection: 'users',
       data: {
@@ -31,7 +29,6 @@ export async function authorizeUser(login: string, password: string) {
       },
     })
 
-    // 3️⃣ И СРАЗУ ЛОГИНИМСЯ
     result = await payload.login({
       collection: 'users',
       data: { email, password },
