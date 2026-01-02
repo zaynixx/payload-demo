@@ -9,6 +9,7 @@ export async function getPosts() {
   const posts = await payload.find({
     collection: 'posts',
     sort: '-createdAt',
+    depth: 2, 
   })
 
   return posts.docs

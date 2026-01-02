@@ -1,20 +1,18 @@
 'use server'
 
-import { cookies } from 'next/headers'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 
 export async function createPost(data: {
   title: string
   slug: string
-  content?: string
+  content: string
   categoryIds: string[]
   ownerId: string
 }) {
   const payload = await getPayload({ config })
 
-  // для простого теста — создаём пост, owner берём из формы/состояния
-  const doc = await payload.create({
+  const post = await payload.create({
     collection: 'posts',
     data: {
       title: data.title,
@@ -25,5 +23,5 @@ export async function createPost(data: {
     },
   })
 
-  return doc
+  return post
 }

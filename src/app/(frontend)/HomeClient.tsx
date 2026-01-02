@@ -3,23 +3,27 @@
 import { useState } from 'react'
 import { authorizeUser } from '@/server/actions/authorizeUser'
 import { createPost } from '@/server/actions/createPost'
-import { useRouter } from 'next/navigation'
+import PostsList from './components/PostsList'
 
 export default function HomeClient() {
-  const router = useRouter()
-
-  const [email, setEmail] = useState('test@test.com')
+  const [login, setLogin] = useState('test')
   const [password, setPassword] = useState('test')
   const [user, setUser] = useState<any>(null)
+  const [displayName, setDisplayName] = useState<string | null>(null)
 
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
   const [content, setContent] = useState('')
 
+  const [postsVersion, setPostsVersion] = useState(0)
+
   async function onLogin() {
-    const res = await authorizeUser(email, password)
+    const res = await authorizeUser(login, password)
     setUser(res.user)
-    router.refresh()
+
+    setDisplayName(
+      login.includes('@') ? login.split('@')[0] : login
+    )
   }
 
   async function onCreatePost() {
@@ -35,48 +39,60 @@ export default function HomeClient() {
     setSlug('')
     setContent('')
 
-    router.refresh()
+    // 🔥 REALTIME UPDATE
+    setPostsVersion(v => v + 1)
   }
 
   if (!user) {
     return (
-      <>
+      <div style={{ maxWidth: 400 }}>
         <h1>Login</h1>
         <input
-        placeholder="login"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
+          placeholder="login"
+          value={login}
+          onChange={e => setLogin(e.target.value)}
         />
         <br />
         <input
+          placeholder="password"
+          type="password"
           value={password}
           onChange={e => setPassword(e.target.value)}
-          type="password"
         />
         <br />
         <button onClick={onLogin}>Login</button>
-      </>
+      </div>
     )
   }
 
   return (
-    <>
-        <h1>
-        Здравствуйте{' '}
-        {user.username
-            ? user.username
-            : user.email?.split('@')[0]}
-        </h1>
-
+    <div style={{ maxWidth: 600 }}>
+      <h1>Здравствуйте {displayName}</h1>
 
       <h2>Создать пост</h2>
-      <input value={title} onChange={e => setTitle(e.target.value)} />
+      <input
+        placeholder="title"
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+      />
       <br />
-      <input value={slug} onChange={e => setSlug(e.target.value)} />
+      <input
+        placeholder="slug"
+        value={slug}
+        onChange={e => setSlug(e.target.value)}
+      />
       <br />
-      <textarea value={content} onChange={e => setContent(e.target.value)} />
+      <textarea
+        placeholder="content"
+        value={content}
+        onChange={e => setContent(e.target.value)}
+      />
       <br />
       <button onClick={onCreatePost}>Create Post</button>
-    </>
+
+      {user && (
+        <PostsList refreshKey={postsVersion} />
+      )}
+    </div>
   )
 }
